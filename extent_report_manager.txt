@@ -1,0 +1,57 @@
+package com.finqa.reporting;
+
+import com.aventstack.extentreports.ExtentReports;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.reporter.ExtentSparkReporter;
+import com.aventstack.extentreports.reporter.configuration.Theme;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class ExtentReportManager {
+    
+    private static ExtentReports extent;
+    private static final String REPORT_DIR = "test-output/extent-reports/";
+    
+    public static ExtentReports getInstance() {
+        if (extent == null) {
+            createInstance();
+        }
+        return extent;
+    }
+    
+    private static void createInstance() {
+        // Create report directory if it doesn't exist
+        File reportDir = new File(REPORT_DIR);
+        if (!reportDir.exists()) {
+            reportDir.mkdirs();
+        }
+        
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
+        String reportName = "FinQA_Automation_Report_" + timestamp + ".html";
+        String reportPath = REPORT_DIR + reportName;
+        
+        ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
+        sparkReporter.config().setDocumentTitle("FinQA Automation Report");
+        sparkReporter.config().setReportName("Financial Application Test Report");
+        sparkReporter.config().setTheme(Theme.STANDARD);
+        sparkReporter.config().setEncoding("utf-8");
+        
+        extent = new ExtentReports();
+        extent.attachReporter(sparkReporter);
+        extent.setSystemInfo("OS", System.getProperty("os.name"));
+        extent.setSystemInfo("Java Version", System.getProperty("java.version"));
+        extent.setSystemInfo("Environment", "QA");
+    }
+    
+    public static synchronized ExtentTest createTest(String testName) {
+        return getInstance().createTest(testName);
+    }
+    
+    public static void flushReport() {
+        if (extent != null) {
+            extent.flush();
+        }
+    }
+}
